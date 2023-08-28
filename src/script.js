@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { FontLoader } from "three/examples/jsm/loaders/fontLoader.js";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import * as dat from "lil-gui";
 
@@ -50,7 +50,7 @@ const material = new THREE.MeshMatcapMaterial({
   matcap: matcapTexture,
 });
 
-fontLoader.load("/fonts/font.json", (font) => {
+fontLoader.load("/fonts/font.typeface.json", (font) => {
   const textGeometry = new TextGeometry("Rena", {
     font,
     size: 2,
