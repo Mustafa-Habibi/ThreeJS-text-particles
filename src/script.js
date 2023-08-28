@@ -67,6 +67,11 @@ fontLoader.load("/fonts/font-1.typeface.json", (font) => {
 
   const text = new THREE.Mesh(textGeometry, material);
   objectsGroup.add(text);
+
+  // Theatre page load animation
+  project.ready.then(() => {
+    sheet.sequence.play({ range: [0, 2] }).then(() => {});
+  });
 });
 
 /**
@@ -183,8 +188,4 @@ cameraAnim.onValuesChange((cameraAnim) => {
   camera.position.x = cameraAnim.x;
   camera.position.y = cameraAnim.y;
   camera.position.z = cameraAnim.z;
-});
-
-project.ready.then(() => {
-  sheet.sequence.play({ range: [0, 2] }).then(() => {});
 });
