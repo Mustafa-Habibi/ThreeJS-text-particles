@@ -50,7 +50,7 @@ const material = new THREE.MeshMatcapMaterial({
   matcap: matcapTexture,
 });
 
-fontLoader.load("/fonts/font.typeface.json", (font) => {
+fontLoader.load("/fonts/font-1.typeface.json", (font) => {
   const textGeometry = new TextGeometry("Rena", {
     font,
     size: 2,
