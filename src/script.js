@@ -4,10 +4,6 @@ import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import * as dat from "lil-gui";
 
-import * as core from "@theatre/core";
-// import studio from "@theatre/studio";
-import projectState from "../static/animations/cameraAnimation.json";
-
 THREE.ColorManagement.enabled = false;
 
 /**
@@ -28,7 +24,7 @@ const objectsGroup = new THREE.Group();
 scene.add(objectsGroup);
 
 // Axes helper
-// const axesHelper = new THREE.AxesHelper(3);
+const axesHelper = new THREE.AxesHelper(3);
 // scene.add(axesHelper);
 
 /**
@@ -36,8 +32,8 @@ scene.add(objectsGroup);
  */
 const textureLoader = new THREE.TextureLoader();
 
-const matcapTexture = textureLoader.load(
-  `/textures/matcaps/${Math.ceil(Math.random() * 5)}.png`
+const particlesTexture = textureLoader.load(
+  `/textures/particles/${Math.ceil(Math.random() * 12)}.png`
 );
 
 /**
@@ -45,17 +41,12 @@ const matcapTexture = textureLoader.load(
  */
 const fontLoader = new FontLoader();
 
-const material = new THREE.MeshMatcapMaterial({
-  color: "pink",
-  matcap: matcapTexture,
-});
-
 fontLoader.load("/fonts/font-1.typeface.json", (font) => {
-  const textGeometry = new TextGeometry("Rena", {
+  const textGeometry = new TextGeometry("Freshta\n Jamil\n Kerrar", {
     font,
     size: 2,
     height: 0.2,
-    curveSegments: 11,
+    curveSegments: 22,
     bevelEnabled: true,
     bevelThickness: 0.03,
     bevelSize: 0.02,
@@ -65,38 +56,47 @@ fontLoader.load("/fonts/font-1.typeface.json", (font) => {
   textGeometry.computeBoundingBox();
   textGeometry.center();
 
-  const text = new THREE.Mesh(textGeometry, material);
-  objectsGroup.add(text);
-
-  // Theatre page load animation
-  project.ready.then(() => {
-    sheet.sequence.play({ range: [0, 2] }).then(() => {});
+  const textMaterial = new THREE.MeshBasicMaterial({
+    color: "pink",
+    blending: THREE.AdditiveBlending,
   });
+
+  const text = new THREE.Mesh(textGeometry, textMaterial);
+  objectsGroup.add(text);
 });
 
 /**
- * Donuts
+ * Particles
  */
+const verticesNum = 10000;
+const positionArray = new Float32Array(verticesNum * 3);
+const colorArray = new Float32Array(verticesNum * 3);
 
-const donutGeometry = new THREE.TorusGeometry(0.9, 0.4, 32, 32);
-
-for (let i = 0; i <= 300; i++) {
-  const donut = new THREE.Mesh(donutGeometry, material);
-  // Loop
-  donut.position.set(
-    (Math.random() - 0.5) * 50,
-    (Math.random() - 0.5) * 50,
-    (Math.random() - 0.5) * 50
-  );
-
-  const randomScaleValue = Math.random();
-  donut.scale.set(randomScaleValue, randomScaleValue, randomScaleValue);
-
-  donut.rotation.x = Math.random() * Math.PI;
-  donut.rotation.y = Math.random() * Math.PI;
-
-  objectsGroup.add(donut);
+for (let i = 0; i < positionArray.length; i++) {
+  positionArray[i] = (Math.random() - 0.5) * 30;
+  colorArray[i] = Math.random();
 }
+
+const particlesGeometry = new THREE.BufferGeometry();
+const positionAttribute = new THREE.BufferAttribute(positionArray, 3);
+const colorAttribute = new THREE.BufferAttribute(colorArray, 3);
+particlesGeometry.setAttribute("position", positionAttribute);
+particlesGeometry.setAttribute("color", colorAttribute);
+
+const particlesMaterial = new THREE.PointsMaterial();
+particlesMaterial.size = 0.4;
+particlesMaterial.sizeAttenuation = true;
+particlesMaterial.color = new THREE.Color("pink");
+particlesMaterial.alphaMap = particlesTexture;
+particlesMaterial.transparent = true;
+particlesMaterial.alphaTest = 0.15;
+// particlesMaterial.vertexColors = true;
+particlesMaterial.blending = THREE.AdditiveBlending;
+
+const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+scene.add(particles);
+
+console.log(particlesGeometry);
 
 /**
  * Sizes
@@ -130,9 +130,9 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.x = 2;
-camera.position.y = 2;
-camera.position.z = 4;
+camera.position.x = 6;
+camera.position.y = 4;
+camera.position.z = 12;
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 scene.add(camera);
 
@@ -158,6 +158,11 @@ const clock = new THREE.Clock();
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
+  // Update partilces
+  particles.position.x = Math.cos(elapsedTime * 0.25) * 5;
+  particles.position.z = Math.sin(elapsedTime * 0.25) * 5;
+  particles.position.y = Math.sin(elapsedTime) * 0.25;
+
   // Update controls
   controls.update();
 
@@ -169,23 +174,3 @@ const tick = () => {
 };
 
 tick();
-
-/**
- * Theatre
- */
-// studio.initialize();
-
-const project = core.getProject("Project", { state: projectState });
-const sheet = project.sheet("Sheet");
-
-const cameraAnim = sheet.object("Camera", {
-  x: camera.position.x,
-  y: camera.position.y,
-  z: camera.position.z,
-});
-
-cameraAnim.onValuesChange((cameraAnim) => {
-  camera.position.x = cameraAnim.x;
-  camera.position.y = cameraAnim.y;
-  camera.position.z = cameraAnim.z;
-});
